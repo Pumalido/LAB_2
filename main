@@ -1,0 +1,125 @@
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace ConsoleApplication1
+{
+
+class Program
+{
+
+
+static void Main()
+{
+
+Queue<int> numbers = new Queue<int>(200);
+//void Show()
+//{
+// for (QueueItem temp = Head; temp != null; temp = temp.Next)
+// Console.WriteLine(temp.Value);
+//}
+bool isOver=true;
+
+Mutex mutex;
+void Creator()
+{
+
+
+while (isOver==true)
+{
+int value;
+mutex.WaitOne();
+if (numbers.Count <= 100)
+{
+Random rand = new Random();
+value = rand.Next(1, 100);
+numbers.Enqueue(value);
+
+Console.WriteLine(Thread.CurrentThread.Name + ". В конец очереди добавленно число " + value + ". Длина очереди: " + numbers.Count + ".");
+}
+else if (numbers.Count >= 100)
+{
+Thread.Sleep(1000);
+}
+mutex.ReleaseMutex();
+}
+Console.WriteLine(Thread.CurrentThread.Name + " остановлен.");
+}
+void Ubit()
+{
+bool gg = true;
+while (gg==true)
+{
+
+if (isOver == true)
+{
+Deq();
+}
+if (isOver == false)
+{
+if (numbers.Count == 0)
+{
+Console.WriteLine("Check");
+gg = false;
+
+}
+else
+{
+Deq();
+}
+}
+
+}
+Console.WriteLine("Поток остановлен");
+void Deq()
+{
+mutex.WaitOne();
+if (numbers.Count != 0)
+{
+Console.WriteLine(Thread.CurrentThread.Name + ". Из начала очереди удаленно число " + numbers.Peek() + ". Длина очереди: " + (numbers.Count - 1) + ".");
+numbers.Dequeue();
+}
+mutex.ReleaseMutex();
+}
+}
+mutex = new Mutex();
+Thread thread1 = new Thread(Creator);
+Thread thread2 = new Thread(Creator);
+Thread thread3 = new Thread(Creator);
+Thread Tthread1 = new Thread(Ubit);
+Thread Tthread2 = new Thread(Ubit);
+thread1.Start();
+thread2.Start();
+thread3.Start();
+Tthread1.Start();
+Tthread2.Start();
+Console.WriteLine("Нажмите q, чтобы остановить потоки производителей.");
+ConsoleKey key = Console.ReadKey().Key;
+if (key == ConsoleKey.Q)
+{
+isOver = false;
+thread1.Join();
+thread2.Join();
+thread3.Join();
+Console.WriteLine("Производители убиты");
+while (true)
+{
+if (numbers.Count == 0)
+{
+Tthread2.Join();
+Tthread1.Join();
+Console.WriteLine("Кушатели убиты");
+break;
+}
+}
+}
+if (numbers.Count == 0)
+{
+Tthread1.Join();
+Tthread2.Join();
+Console.WriteLine("Потоки убиты, очередь очищена");
+}
+}
+}
+}
